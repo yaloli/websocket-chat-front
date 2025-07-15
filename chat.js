@@ -6,7 +6,7 @@ const confluenceId = document.querySelector('meta[name="ajs-current-user-fullnam
 const inputArea = document.getElementById("msg");
 const chatTitle = document.getElementById("chat-header");
 const chatRoomId = document.querySelector('meta[name="ajs-page-id"]').content;
-const tooltip = document.getElementById("memberTooltip")
+const tooltip = document.getElementById("memberTooltip");
 
 var lastMessageTimestamp = null
 // 사진 첨부기능 추가
@@ -33,24 +33,37 @@ socket.onmessage = (e) => {
     }
 
     const chatRoomDiv = document.createElement("div");
-    chatRoomDiv.innerText = `[${get_today()}] ${msg.senderId}: ${msg.message}`;
+
     
     if (msg.messageType==='ENTER') {
         chatRoomDiv.style="color: lightgray";
-        console.log('입장')
-        console.log(msg);
         setMembers(msg.members)
     }
-
+    
     if (msg.messageType ==='IMAGE') {
-        chatRoomDiv.innerText = `[${get_today()}] ${msg.senderId}: `;
+        const chatRoomP = document.createElement("p");
+        chatRoomP.innerText = `[${get_today()}] ${msg.senderId}:`;
         const img = document.createElement('img');
         
         img.src = msg.message;
         img.style.maxWidth = '100%';
-        img.style.display = "block"
-        chatRoomDiv.style.maxWidth="600px"
-        chatRoomDiv.appendChild(img);
+        img.style.display = "block";
+        img.style.boxShadow = "0px 0px 3px 0px grey";
+        img.style.margin = "3px"
+        img.style.borderRadius = "5px";
+        chatRoomDiv.style.maxWidth="600px";
+
+        chatRoomP.appendChild(img);
+        chatRoomDiv.appendChild(chatRoomP);
+    } else {
+        const chatRoomP = document.createElement("p");
+        chatRoomP.innerText = `[${get_today()}] ${msg.senderId}: ${msg.message}`;
+        chatRoomDiv.appendChild(chatRoomP);
+    }
+
+    // 내 채팅 구분기능
+    if (msg.senderId === confluenceId) {
+        chatRoomDiv.style.textAlign = "right"
     }
 
     chatBox.appendChild(chatRoomDiv);
@@ -141,7 +154,8 @@ function init() {
 }
 
 inputArea.addEventListener("keydown", function(event) {
-    if(event.key == "Enter") {
+    if(event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
         send();
     }
 });
