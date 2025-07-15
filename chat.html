@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 유저이름 -->
+    <meta name="ajs-current-user-fullname" content="운영자">
+    <!-- 채팅방 아이디 -->
+    <!-- <meta name="ajs-page-id" content="355953897"> -->
+    <meta name="ajs-page-id" content="355953380">
+    <title>Simple Websocket Chat</title>
+</head>
+<body style="position: relative;">
+    <h2 id="chat-header">채팅</h2>
+    <div
+        id="memberTooltip"
+        style="display: none;position:absolute; background: white; border: 1px solid #ccc; box-shadow: 0 0 5px rgba(0,0,0,0.1);padding: 8px; z-index: 1000;"
+    >
+    </div>
+
+    <div id="chat-wrapper" style="max-width: 800px;">
+
+        <div id="chat" style="height: 400px; overflow-y: scroll;"></div>
+        <div style="width: 100%; display: flex; align-items: center;">
+            <input style="flex:1" type="text" id="msg" placeholder="메세지 입력">
+            <button onclick="send()">전송</button>
+        </div>
+
+    </div>
+
+    <script src="chat.js"></script>
+</body>
+</html>
