@@ -1,4 +1,5 @@
 const chatBox = document.getElementById("chat");
+const chatWrapper = document.getElementById("chat-wrapper");
 const serverUrl = "localhost:8083"
 const socket = new WebSocket(`ws://${serverUrl}/ws/chat`);
 const confluenceId = document.querySelector('meta[name="ajs-current-user-fullname"]').content; 
@@ -33,6 +34,7 @@ socket.onmessage = (e) => {
     }
 
     const chatRoomDiv = document.createElement("div");
+    const shouldScroll = isScrolledToBottom();
 
     
     if (msg.messageType==='ENTER') {
@@ -46,12 +48,14 @@ socket.onmessage = (e) => {
         const img = document.createElement('img');
         
         img.src = msg.message;
-        img.style.maxWidth = '100%';
-        img.style.display = "block";
-        img.style.boxShadow = "0px 0px 3px 0px grey";
-        img.style.margin = "3px"
-        img.style.borderRadius = "5px";
-        chatRoomDiv.style.maxWidth="600px";
+
+        img.addEventListener('load', () => {
+            if (shouldScroll || msg.senderId === confluenceId) {
+                chatBox.scrollTop = chatBox.scrollHeight;
+            } else {
+                showScrollDownNotification(chatRoomP.innerText+" "+msg.message);
+            }
+        })
 
         chatRoomP.appendChild(img);
         chatRoomDiv.appendChild(chatRoomP);
@@ -63,12 +67,18 @@ socket.onmessage = (e) => {
 
     // 내 채팅 구분기능
     if (msg.senderId === confluenceId) {
-        chatRoomDiv.style.textAlign = "right"
+        chatRoomDiv.className = "my-chatting";
     }
 
     chatBox.appendChild(chatRoomDiv);
 
-    chatBox.scrollTop = chatBox.scrollHeight;
+    if (shouldScroll || msg.senderId === confluenceId) {
+        chatBox.scrollTop = chatBox.scrollHeight;
+    } else if (msg.messageType !=='IMAGE' && msg.senderId !== confluenceId) {
+        showScrollDownNotification(`${msg.senderId}: ${msg.message}`);
+    }
+
+
     if (!document.hasFocus()) {
         t = window.open('신규 메세지 확인');
         t.close();
@@ -88,6 +98,23 @@ function send() {
     text.value = "";
 
     document.getElementById("msg").value = "";
+}
+
+function showScrollDownNotification(message) {
+    const notify = document.querySelector('.new-message-alert');
+    notify.innerText = message;
+    notify.style.display = 'block';
+}
+
+function hideScrollDownNotification() {
+    const notify = document.querySelector('.new-message-alert');
+    notify.style.display = 'none';
+}
+
+function isScrolledToBottom(tolerance = 10) {
+    return (
+        chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight < tolerance
+    )
 }
 
 function setMembers(members) {
@@ -150,7 +177,14 @@ async function uploadImageAndSend(file) {
 }
 
 function init() {
-
+    
+    const newMessageAlert = document.createElement('div');
+    newMessageAlert.id = "newMessageAlert";
+    newMessageAlert.className = "new-message-alert";
+    chatWrapper.appendChild(newMessageAlert);
+    newMessageAlert.addEventListener("click", () => {
+        chatBox.scrollTop = chatBox.scrollHeight;
+    })
 }
 
 inputArea.addEventListener("keydown", function(event) {
@@ -190,6 +224,12 @@ chatBox.addEventListener("drop", (e)=> {
                 uploadImageAndSend(file);
             }
         }
+    }
+});
+
+chatBox.addEventListener("scroll", ()=> {
+    if (isScrolledToBottom()) {
+        hideScrollDownNotification();
     }
 });
 
